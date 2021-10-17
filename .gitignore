@@ -4,6 +4,8 @@ node_modules
 /server/build
 /public/build
 
+/build
+
 .env
 
 app/**/app.css
