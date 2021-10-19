@@ -1,9 +1,37 @@
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Person } from '~/types/people';
 
 import { useUsers } from '../data/UserContext';
 
 const Index = () => {
-  const { people } = useUsers();
+  const { people, selecting, setSelectedPeople } = useUsers();
+  const [selected, setSelected] = useState<Array<Person>>([]);
+
+  const handleSelectUser = useCallback(
+    (user: Person) => {
+      if (selected.find(u => user.name === u.name)) {
+        let newSelected = [...selected];
+        newSelected = newSelected.filter(u => u.name !== user.name);
+        setSelected(newSelected);
+      } else {
+        const newSelected = [...selected];
+        newSelected.push(user);
+        setSelected(newSelected);
+      }
+    },
+    [selected]
+  );
+
+  useEffect(() => {
+    if (!selecting) {
+      setSelected([]);
+    }
+  }, [selecting]);
+
+  useEffect(() => {
+    setSelectedPeople(selected);
+  }, [selected]);
 
   return (
     <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
@@ -19,29 +47,39 @@ const Index = () => {
           return 0;
         })
         .map((person, index) => {
+          const isSelected = selected.find(u => u.name === person.name);
           let cardColor = '';
 
-          switch (index) {
-            case 0:
-              cardColor =
-                'bg-yellow-300 bg-opacity-50 border-yellow-300 hover:border-yellow-500';
-              break;
-            case 1:
-              cardColor = 'bg-gray-200 border-gray-300';
-              break;
-            case 2:
-              cardColor =
-                'bg-yellow-700 bg-opacity-25 border-yellow-300 hover:border-yellow-600';
-              break;
-            default:
-              cardColor = 'bg-white border-gray-300';
-              break;
+          if (!selecting) {
+            switch (index) {
+              case 0:
+                cardColor =
+                  'bg-yellow-300 bg-opacity-50 border-yellow-300 hover:border-yellow-500';
+                break;
+              case 1:
+                cardColor = 'bg-gray-200 border-gray-300';
+                break;
+              case 2:
+                cardColor =
+                  'bg-yellow-700 bg-opacity-25 border-yellow-300 hover:border-yellow-600';
+                break;
+              default:
+                cardColor = 'bg-white border-gray-300';
+                break;
+            }
+          } else {
+            if (isSelected) {
+              cardColor = 'bg-green-500 bg-opacity-20';
+            }
           }
 
           return (
             <Link
               key={person.name}
-              to={`/profile/${person.name.replace(' ', '-')}`}
+              onClick={() => selecting && handleSelectUser(person)}
+              to={
+                !selecting ? `/profile/${person.name.replace(' ', '-')}` : '#'
+              }
               className={`relative rounded-lg border px-6 py-5 shadow-sm flex items-center space-x-3 hover:border-gray-400 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500 ${cardColor}`}
             >
               <div className='flex-shrink-0'>
