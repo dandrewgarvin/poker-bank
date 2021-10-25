@@ -66,7 +66,7 @@ export let action: ActionFunction = async ({ params, request }) => {
   let body = new URLSearchParams(await request.text());
   let selected: Array<Person> = JSON.parse(body.get('selected') ?? '');
 
-  const ALLOWENCE = 350;
+  const ALLOWENCE = 500;
   people = people.map((person: Person) => {
     if (selected.find(s => s.name === person.name)) {
       return {
