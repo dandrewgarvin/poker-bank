@@ -9,8 +9,8 @@
     "postinstall": "remix setup node",
     "deploy": "flyctl deploy --build-arg REMIX_TOKEN=${REMIX_TOKEN}",
     "start": "remix-serve build",
-    "watch:css": "postcss styles --base styles --dir app/styles -w",
-    "build:css": "postcss styles --base styles --dir app/styles --env production"
+    "css:watch": "postcss styles --base styles --dir app/styles -w",
+    "css:build": "postcss styles --base styles --dir app/styles --env production"
   },
   "dependencies": {
     "@headlessui/react": "^1.4.1",
