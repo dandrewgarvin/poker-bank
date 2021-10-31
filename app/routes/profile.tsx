@@ -1,5 +1,10 @@
 import { Outlet } from 'react-router-dom';
+import MainLayout from '~/layouts/Main';
 
 export default function Profile() {
-  return <Outlet />;
+  return (
+    <MainLayout>
+      <Outlet />
+    </MainLayout>
+  );
 }

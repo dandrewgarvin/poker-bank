@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useLoaderData, redirect } from 'remix';
 import type { LoaderFunction, ActionFunction } from 'remix';
 import { useNavigate } from 'react-router-dom';
@@ -19,10 +19,14 @@ export let action: ActionFunction = async ({ params, request }) => {
   const body = new URLSearchParams(await request.text());
   const gist = new GistService(fetch);
 
+  const addToBalance = body.get('add-to-balance') ?? false;
+  const originalBalance = Number(body.get('original-balance') ?? 0);
+  const balance = Number(body.get('balance') ?? 0);
+
   await gist.update([
     {
       name: params.user?.replace('-', ' ') || '',
-      bank: Number(body.get('balance') ?? 0),
+      bank: addToBalance ? originalBalance + balance : balance,
       imageUrl: body.get('imageURL') || '',
     },
   ]);
@@ -39,12 +43,13 @@ export default function UserProfile() {
     person => person.name === data.params.user.replace('-', ' ')
   )[0];
 
-  const [firstName] = useState(currentUser.name.split(' ')[0] ?? '');
-  const [lastName] = useState(currentUser.name.split(' ')[1] ?? '');
-  const [imageUrl] = useState(currentUser.imageUrl);
+  const [firstName] = useState(currentUser?.name.split(' ')[0] ?? '');
+  const [lastName] = useState(currentUser?.name.split(' ')[1] ?? '');
+  const [imageUrl] = useState(currentUser?.imageUrl);
   const [balance, setBalance] = useState<string | number>(
-    currentUser.bank ?? 0
+    currentUser?.bank ?? 0
   );
+  const [addBalance, setAddBalance] = useState(false);
 
   return (
     <form className='space-y-8 divide-y divide-gray-200' method='POST'>
@@ -125,11 +130,35 @@ export default function UserProfile() {
               >
                 Current Balance
               </label>
+              <input
+                name='original-balance'
+                defaultValue={currentUser?.bank}
+                hidden
+              />
               <CurrencyInput
                 id='balance'
                 value={balance}
                 onChange={setBalance}
               />
+
+              <div className='flex align-center items-center h-full'>
+                <input
+                  className='focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded mr-2'
+                  id='add-balance'
+                  name='add-to-balance'
+                  type='checkbox'
+                  checked={addBalance}
+                  onChange={evnt => {
+                    setAddBalance(evnt.target.checked);
+                  }}
+                />
+                <label
+                  htmlFor='add-balance'
+                  className='text-sm font-medium text-gray-700'
+                >
+                  Add to Balance
+                </label>
+              </div>
             </div>
           </div>
         </div>

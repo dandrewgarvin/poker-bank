@@ -1,65 +1,27 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import {
-  ActionFunction,
   MetaFunction,
   LinksFunction,
   LoaderFunction,
   useLoaderData,
 } from 'remix';
-import {
-  Meta,
-  Links,
-  Scripts,
-  LiveReload,
-  useCatch,
-  useSubmit,
-  redirect,
-} from 'remix';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Meta, Links, Scripts, LiveReload, useCatch } from 'remix';
+import { Outlet } from 'react-router-dom';
+
+import stylesUrl from './styles/global.css';
+import tailwindStyles from './styles/app.css';
+
+import { Person } from './types/people';
 
 import GistService from './services/gist/gist';
 
 import UserContext, { useUsers } from './contexts/UserContext';
-
-import Header from './components/Header';
-import type { Route } from './components/Header';
-
-import stylesUrl from './styles/global.css';
-import tailwindStyles from './styles/app.css';
-import { Person } from './types/people';
 
 export let links: LinksFunction = () => {
   return [
     { rel: 'stylesheet', href: stylesUrl },
     { rel: 'stylesheet', href: tailwindStyles },
   ];
-};
-
-export let loader: LoaderFunction = async () => {
-  const gist = new GistService(fetch);
-
-  const people = await gist.get();
-
-  return {
-    people,
-  };
-};
-
-export let action: ActionFunction = async ({ params, request }) => {
-  const gist = new GistService(fetch);
-
-  let body = new URLSearchParams(await request.text());
-  let selected: Array<Person> = JSON.parse(body.get('selected') ?? '');
-
-  const ALLOWENCE = 500;
-  selected = selected.map(person => ({
-    ...person,
-    bank: person.bank + ALLOWENCE,
-  }));
-
-  await gist.update(selected);
-
-  return redirect('?selecting=false');
 };
 
 export let meta: MetaFunction = () => {
@@ -94,109 +56,27 @@ function Document({
   );
 }
 
-const navigation = [{ name: 'Chip Bank', title: 'Overview', href: '/' }];
+export let loader: LoaderFunction = async () => {
+  const gist = new GistService(fetch);
 
-const useQueryParams = () => {
-  return new URLSearchParams(useLocation().search);
+  const people = await gist.get();
+
+  return {
+    people,
+  };
 };
 
 export default function App() {
-  const submit = useSubmit();
-  const navigate = useNavigate();
-  const queryParams = useQueryParams();
-  const location = useLocation();
-
-  const { people }: { people: Person[] } = useLoaderData();
-
-  const [activeRoute, setActiveRoute] = useState<Route>(navigation[0]);
-  const [selecting, setSelecting] = useState(false);
-  const [selectedPeople, setSelectedPeople] = useState<Array<Person>>([]);
-
-  const handleDistribute = useCallback(() => {
-    const form = new FormData();
-    form.set('selected', JSON.stringify(selectedPeople));
-
-    submit(form, { method: 'post' });
-  }, [selectedPeople]);
-
-  useEffect(() => {
-    const isSelecting = queryParams.get('selecting');
-
-    if (isSelecting !== null) {
-      setSelecting(false);
-      setSelectedPeople([]);
-      navigate('/');
-    }
-  }, [location.search]);
+  const { people }: { people: Array<Person> } = useLoaderData();
 
   return (
     <Document>
-      <div>
-        <Header
-          routes={navigation}
-          activeRoute={activeRoute}
-          setActiveRoute={setActiveRoute}
-        />
-        <div className='bg-gray-800 pb-32'>
-          <header className='py-10'>
-            <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between'>
-              <h1 className='text-3xl font-bold text-white'>
-                {activeRoute.name}
-              </h1>
-
-              {location.pathname === '/' && (
-                <span className='flex'>
-                  <button
-                    className='text-white btn p-2 rounded bg-indigo-500'
-                    onClick={() => setSelecting(!selecting)}
-                  >
-                    {!selecting ? 'Stimmy Payments' : 'Cancel Stimmys'}
-                  </button>
-                  {selecting && (
-                    <button
-                      className='text-white btn p-2 rounded bg-indigo-500 ml-2'
-                      onClick={() => handleDistribute()}
-                    >
-                      Distribute Stimmys
-                    </button>
-                  )}
-                </span>
-              )}
-            </div>
-          </header>
-        </div>
-
-        <UserContext people={people} selecting={selecting}>
-          <Main handleSelectedPeople={setSelectedPeople} />
-        </UserContext>
-      </div>
+      <UserContext people={people}>
+        <Outlet />
+      </UserContext>
     </Document>
   );
 }
-
-const Main = ({
-  handleSelectedPeople,
-}: {
-  handleSelectedPeople(people: Array<Person>): void;
-}) => {
-  const { selectedPeople } = useUsers();
-
-  useEffect(() => {
-    if (selectedPeople) {
-      handleSelectedPeople(selectedPeople);
-    }
-  }, [selectedPeople]);
-
-  return (
-    <main className='-mt-32'>
-      <div className='max-w-7xl mx-auto pb-12 px-4 sm:px-6 lg:px-8'>
-        <div className='bg-white rounded-lg shadow px-5 py-6 sm:px-6'>
-          <Outlet />
-        </div>
-      </div>
-    </main>
-  );
-};
 
 export function CatchBoundary() {
   let caught = useCatch();
