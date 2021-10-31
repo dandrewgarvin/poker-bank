@@ -3,10 +3,11 @@ import { useLoaderData, redirect } from 'remix';
 import type { LoaderFunction, ActionFunction } from 'remix';
 import { useNavigate } from 'react-router-dom';
 
-import { useUsers } from '~/data/UserContext';
+import GistService from '~/services/gist/gist';
+
+import { useUsers } from '~/contexts/UserContext';
 
 import CurrencyInput from '~/components/CurrencyInput';
-import { Person } from '~/types/people';
 
 export let loader: LoaderFunction = ({ params }) => {
   return {
@@ -15,43 +16,16 @@ export let loader: LoaderFunction = ({ params }) => {
 };
 
 export let action: ActionFunction = async ({ params, request }) => {
-  const response = await fetch(
-    'https://api.github.com/gists/843c7ffbe1073bdaf45cfc48b86264c1',
+  const body = new URLSearchParams(await request.text());
+  const gist = new GistService(fetch);
+
+  await gist.update([
     {
-      headers: {
-        Authorization: `token ${process.env.GITHUB_TOKEN}`,
-      },
-    }
-  );
-
-  const data = await response.json();
-  let people = JSON.parse(data.files.people.content);
-
-  let body = new URLSearchParams(await request.text());
-
-  people = people.map((person: Person) => {
-    if (person.name === params.user?.replace('-', ' ')) {
-      return {
-        name: person.name,
-        bank: Number(body.get('balance') ?? person.bank),
-        imageUrl: person.imageUrl,
-      };
-    }
-
-    return person;
-  });
-
-  await fetch('https://api.github.com/gists/843c7ffbe1073bdaf45cfc48b86264c1', {
-    method: 'patch',
-    headers: {
-      Authorization: `token ${process.env.GITHUB_TOKEN}`,
+      name: params.user?.replace('-', ' ') || '',
+      bank: Number(body.get('balance') ?? 0),
+      imageUrl: body.get('imageURL') || '',
     },
-    body: JSON.stringify({
-      files: {
-        people: { content: JSON.stringify(people, null, 2) },
-      },
-    }),
-  });
+  ]);
 
   return redirect(`/`);
 };
@@ -65,13 +39,9 @@ export default function UserProfile() {
     person => person.name === data.params.user.replace('-', ' ')
   )[0];
 
-  const [firstName, setFirstName] = useState(
-    currentUser.name.split(' ')[0] ?? ''
-  );
-  const [lastName, setLastName] = useState(
-    currentUser.name.split(' ')[1] ?? ''
-  );
-  const [imageUrl, setImageUrl] = useState(currentUser.imageUrl);
+  const [firstName] = useState(currentUser.name.split(' ')[0] ?? '');
+  const [lastName] = useState(currentUser.name.split(' ')[1] ?? '');
+  const [imageUrl] = useState(currentUser.imageUrl);
   const [balance, setBalance] = useState<string | number>(
     currentUser.bank ?? 0
   );
@@ -103,9 +73,8 @@ export default function UserProfile() {
                   id='first-name'
                   autoComplete='given-name'
                   className='max-w-lg block w-full shadow-sm sm:max-w-xs sm:text-sm border-gray-300 rounded-md cursor-not-allowed bg-gray-200'
-                  value={firstName}
-                  onChange={evnt => setFirstName(evnt.target.value)}
-                  disabled
+                  defaultValue={firstName}
+                  readOnly
                 />
               </div>
             </div>
@@ -124,9 +93,8 @@ export default function UserProfile() {
                   id='last-name'
                   autoComplete='family-name'
                   className='max-w-lg block w-full shadow-sm sm:max-w-xs sm:text-sm border-gray-300 rounded-md cursor-not-allowed bg-gray-200'
-                  value={lastName}
-                  onChange={evnt => setLastName(evnt.target.value)}
-                  disabled
+                  defaultValue={lastName}
+                  readOnly
                 />
               </div>
             </div>
@@ -144,9 +112,8 @@ export default function UserProfile() {
                   name='imageURL'
                   type='text'
                   className='block max-w-lg w-full shadow-sm sm:text-sm border-gray-300 rounded-md cursor-not-allowed bg-gray-200'
-                  value={imageUrl}
-                  onChange={evnt => setImageUrl(evnt.target.value)}
-                  disabled
+                  defaultValue={imageUrl}
+                  readOnly
                 />
               </div>
             </div>

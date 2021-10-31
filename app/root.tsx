@@ -17,7 +17,9 @@ import {
 } from 'remix';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 
-import UserContext, { useUsers } from './data/UserContext';
+import GistService from './services/gist/gist';
+
+import UserContext, { useUsers } from './contexts/UserContext';
 
 import Header from './components/Header';
 import type { Route } from './components/Header';
@@ -34,62 +36,28 @@ export let links: LinksFunction = () => {
 };
 
 export let loader: LoaderFunction = async () => {
-  const response = await fetch(
-    'https://api.github.com/gists/843c7ffbe1073bdaf45cfc48b86264c1',
-    {
-      headers: {
-        Authorization: `token ${process.env.GITHUB_TOKEN}`,
-      },
-    }
-  );
+  const gist = new GistService(fetch);
 
-  const data = await response.json();
+  const people = await gist.get();
 
   return {
-    people: JSON.parse(data.files.people.content),
+    people,
   };
 };
 
 export let action: ActionFunction = async ({ params, request }) => {
-  const response = await fetch(
-    'https://api.github.com/gists/843c7ffbe1073bdaf45cfc48b86264c1',
-    {
-      headers: {
-        Authorization: `token ${process.env.GITHUB_TOKEN}`,
-      },
-    }
-  );
-
-  const data = await response.json();
-  let people = JSON.parse(data.files.people.content);
+  const gist = new GistService(fetch);
 
   let body = new URLSearchParams(await request.text());
   let selected: Array<Person> = JSON.parse(body.get('selected') ?? '');
 
   const ALLOWENCE = 500;
-  people = people.map((person: Person) => {
-    if (selected.find(s => s.name === person.name)) {
-      return {
-        name: person.name,
-        bank: person.bank + ALLOWENCE,
-        imageUrl: person.imageUrl,
-      };
-    }
+  selected = selected.map(person => ({
+    ...person,
+    bank: person.bank + ALLOWENCE,
+  }));
 
-    return person;
-  });
-
-  await fetch('https://api.github.com/gists/843c7ffbe1073bdaf45cfc48b86264c1', {
-    method: 'patch',
-    headers: {
-      Authorization: `token ${process.env.GITHUB_TOKEN}`,
-    },
-    body: JSON.stringify({
-      files: {
-        people: { content: JSON.stringify(people, null, 2) },
-      },
-    }),
-  });
+  await gist.update(selected);
 
   return redirect('?selecting=false');
 };
@@ -138,7 +106,7 @@ export default function App() {
   const queryParams = useQueryParams();
   const location = useLocation();
 
-  const { people } = useLoaderData();
+  const { people }: { people: Person[] } = useLoaderData();
 
   const [activeRoute, setActiveRoute] = useState<Route>(navigation[0]);
   const [selecting, setSelecting] = useState(false);

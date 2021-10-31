@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Person } from '~/types/people';
 
-import { useUsers } from '../data/UserContext';
+import { useUsers } from '../contexts/UserContext';
 
 const Index = () => {
   const { people, selecting, setSelectedPeople } = useUsers();
