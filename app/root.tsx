@@ -144,22 +144,24 @@ export default function App() {
                 {activeRoute.name}
               </h1>
 
-              <span className='flex'>
-                <button
-                  className='text-white btn p-2 rounded bg-indigo-500'
-                  onClick={() => setSelecting(!selecting)}
-                >
-                  {!selecting ? 'Stimmy Payments' : 'Cancel Stimmys'}
-                </button>
-                {selecting && (
+              {location.pathname === '/' && (
+                <span className='flex'>
                   <button
-                    className='text-white btn p-2 rounded bg-indigo-500 ml-2'
-                    onClick={() => handleDistribute()}
+                    className='text-white btn p-2 rounded bg-indigo-500'
+                    onClick={() => setSelecting(!selecting)}
                   >
-                    Distribute Stimmys
+                    {!selecting ? 'Stimmy Payments' : 'Cancel Stimmys'}
                   </button>
-                )}
-              </span>
+                  {selecting && (
+                    <button
+                      className='text-white btn p-2 rounded bg-indigo-500 ml-2'
+                      onClick={() => handleDistribute()}
+                    >
+                      Distribute Stimmys
+                    </button>
+                  )}
+                </span>
+              )}
             </div>
           </header>
         </div>
