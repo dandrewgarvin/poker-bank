@@ -1,0 +1,44 @@
+{
+  "private": true,
+  "name": "remix-app-template",
+  "description": "",
+  "license": "",
+  "scripts": {
+    "build": "remix build",
+    "dev": "remix dev",
+    "postinstall": "remix setup node",
+    "deploy": "fly deploy --remote-only",
+    "start": "remix-serve build",
+    "start:dev": "cross-env NODE_ENV=development ts-node server/index.ts",
+    "watch:css": "postcss styles --base styles --dir app/styles -w",
+    "build:css": "postcss styles --base styles --dir app/styles --env production"
+  },
+  "dependencies": {
+    "@headlessui/react": "^1.4.1",
+    "@heroicons/react": "^1.0.4",
+    "@remix-run/react": "^1.1.1",
+    "@remix-run/serve": "^1.1.1",
+    "@tailwindcss/forms": "^0.3.4",
+    "dotenv": "^12.0.3",
+    "isomorphic-fetch": "^3.0.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-router-dom": "^6.2.1",
+    "remix": "^1.1.1"
+  },
+  "devDependencies": {
+    "@remix-run/dev": "^1.1.1",
+    "@types/isomorphic-fetch": "^0.0.35",
+    "@types/react": "^17.0.24",
+    "@types/react-dom": "^17.0.9",
+    "autoprefixer": "^10.3.7",
+    "postcss": "^8.3.9",
+    "postcss-cli": "^9.0.1",
+    "tailwindcss": "^2.2.16",
+    "typescript": "^4.1.2"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "sideEffects": false
+}
