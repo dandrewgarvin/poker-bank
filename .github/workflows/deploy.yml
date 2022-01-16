@@ -22,6 +22,7 @@ jobs:
       name: Deploy app
       runs-on: ubuntu-latest
       steps:
+        - uses: styfle/cancel-workflow-action@0.9.1
         - uses: actions/checkout@v2
         - uses: superfly/flyctl-actions@master
           with:
