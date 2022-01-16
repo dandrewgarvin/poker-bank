@@ -1,0 +1,30 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Deploy Fly.io
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  
+env:
+  FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+  GH_GIST_ID: ${{ secrets.GH_GIST_ID }}
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  deploy:
+      name: Deploy app
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+        - uses: superfly/flyctl-actions@1.1
+          with:
+            args: "deploy"
